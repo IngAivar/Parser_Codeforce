@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_NAME: ${name}
+      POSTGRES_USER: ${user}
+      POSTGRES_PASSWORD: ${password}
+      POSTGRES_HOST: ${host}
+    restart: always
+    container_name: db
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${user} -d ${name}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    command: >
+      sh -c "python ./manage.py telegram_bot"
+
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: >
+      sh -c "python ./manage.py migrate"
+
+volumes:
+  pg_data:
+  django_static:

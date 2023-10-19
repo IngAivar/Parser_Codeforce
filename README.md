@@ -1,5 +1,7 @@
 ﻿# Parser for Codeforces
 
+## Программа для решения задач на сайте Codeforces
+
 ## Технологический стек
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
